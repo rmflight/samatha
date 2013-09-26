@@ -77,9 +77,9 @@ render.post <- function(site, postname, layout, fig.path){
       knit.post(rmd.file, md.file, fullFig.path)
     }
 
-    page <- markdownToHTML(md.file, fragment.only = TRUE)
-    page <- paste0(page, m("h6", sprintf("Posted on %s", as.Date(postnames[2], format("%Y_%m_%d")))))
-    page <- str_replace_all(page, 
+    pageCont <- markdownToHTML(md.file, fragment.only = TRUE)
+    pageCont <- paste0(pageCont, m("h6", sprintf("Posted on %s", as.Date(postnames[2], format("%Y_%m_%d")))))
+    pageCont <- str_replace_all(pageCont, 
                             paste0("img src=\"",file.path(site, basename(site), fig.path)), 
                             paste0("img src=\"/", fig.path))
     month.dir <- file.path(site, basename(site), "posts", 
@@ -87,12 +87,15 @@ render.post <- function(site, postname, layout, fig.path){
                                                    "[[:digit:]]{4}_[[:digit:]]{2}"), 
                                        "_", "/"))
     dir.create(month.dir, showWarnings = FALSE, recursive = TRUE)
+    
+    page <- list(content=pageCont, title=extract.title(md.file))
+    
     post.obj <- structure(list(html = source(file.path(site, "template/layouts", layout), local = TRUE)$value,
-                               content = page,
+                               content = page$content,
                                layout = layout,
                                file = file.path(month.dir, 
                                                 str_replace(postnames[3], "\\.Rmd", "\\.html")),
-                               title = extract.title(md.file),
+                               title = page$title,
                                sourcefile = postname,
                                tags = extract.tags(md.file)),
                           class = "Samatha.Page")
