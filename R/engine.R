@@ -189,6 +189,21 @@ orphan.items <- function(dest.items, source.items){
   } else FALSE
 }
 
+
+check.pagesPosts <- function(state.source, spp.ID, state.dest, dpp.ID){
+  sapply(1:length(state.source), function(x){
+    !spp.ID[x] %in% dpp.ID || state.source[x] > state.dest[which(dpp.ID == spp.ID[x])]
+  })
+}
+
+check.layouts <- function(lays, states){
+  # are any layouts newer than any files in states?
+  for(l in lays){
+    if(any(l > states)) return(TRUE)
+  }
+  FALSE
+}
+
 #' Checks if source files were modified after the corresponding dest files
 #' if :
 #'  - layouts newer than any html files : rebuild everything - DONE
@@ -205,27 +220,6 @@ orphan.items <- function(dest.items, source.items){
 #' @return logical TRUE if site has been updated, FALSE otherwise
 update.site <- function(site, site.state, post.layout, tag.layout, fig.path){
         
-    check.layouts <- function(lays, states){
-        # are any layouts newer than any files in states?
-        for(l in lays){
-            if(any(l > states)) return(TRUE)
-        }
-        FALSE
-    }
-    ## combine into a single function? --
-    check.pages <- function(){
-        # boolean vector -- true if dest file doesn't exist or is younger than source file
-        sapply(1:length(site.state$source_pages),
-               function(x) !sp[x] %in% dp || 
-                   site.state$source_pages[x] > site.state$dest_pages[which(dp == sp[x])])
-    }
-    check.posts <- function(){
-        # boolean vector -- true if dest file doesn't exist or is younger than source file
-        sapply(1:length(site.state$source_posts),
-               function(x) !sb[x] %in% db || 
-                   site.state$source_posts[x] > site.state$dest_posts[which(db == sb[x])])
-    }
-    
     
     sp <- catch_char_zero(str_replace(as.character(sapply(names(site.state$source_pages), 
                                           function(x) basename(x))),
@@ -263,7 +257,7 @@ update.site <- function(site, site.state, post.layout, tag.layout, fig.path){
         cat("Full site rebuild after layout changes.\n")
         return(TRUE)
     }
-    pages.tobuild <- names(site.state$source_pages[check.pages()])
+    pages.tobuild <- names(site.state$source_pages[check.pagesPosts(site.state$source_pages, sp, site.state$dest_pages, dps)])
     if(length(pages.tobuild)){
         p2b <- str_match(pages.tobuild, "(template/pages/)(.+)")[,3]
         for(p in p2b){
