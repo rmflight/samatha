@@ -317,11 +317,7 @@ refresh.site <- function(site, site.state, post.layout, tag.layout, fig.path){
                                                    collapse = ", ")), "\n")
         return(FALSE)
     }
-    for(post in names(site.state$source_posts)) {
-        write.html(render.post(site, basename(post), 
-                               layout = post.layout, 
-                               fig.path = fig.path))
-    }
+    
     
     pages <- list.files(file.path(site, "template/pages"), recursive = TRUE)
     pages.tobuild <- names(site.state$source_pages)
