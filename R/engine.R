@@ -182,20 +182,42 @@ get.site.state <- function(site){
              c("layouts", "source_pages", "source_posts", "dest_pages", "dest_posts"))
 }
 
-
+#' find orphaned pages and posts
+#' 
+#' This function looks for pages and posts that don't have any associated source, and therefore need to be deleted
+#' 
+#' @name orphan.items
+#' @param dest.items a character vector of things in the destination directory
+#' @param source.items a character vector of things in the source directory
+#' @return logical vector of things in dest.items that are not in source.items
 orphan.items <- function(dest.items, source.items){
   if (length(dest.items)){
     !(dest.items %in% source.items)
   } else FALSE
 }
 
-
+#' check state of pages and posts
+#' 
+#' Checks the current state of pages and posts, i.e. whether they are compiled, or if the change date is newer than the compiled html
+#' 
+#' @name check.pagesPosts
+#' @param state.source the modification dates of the source files
+#' @param spp.ID the actual file names
+#' @param state.dest the modification dates of the destination files
+#' @param dpp.ID the actual destination file names
+#' @return logical which files need to be recompiled
 check.pagesPosts <- function(state.source, spp.ID, state.dest, dpp.ID){
   sapply(1:length(state.source), function(x){
     !spp.ID[x] %in% dpp.ID || state.source[x] > state.dest[which(dpp.ID == spp.ID[x])]
   })
 }
 
+#' check layout files
+#' 
+#' @name check.layouts
+#' @param lays layout files
+#' @param states the states of all the files
+#' @return logical are any layouts newer than files in states
 check.layouts <- function(lays, states){
   # are any layouts newer than any files in states?
   for(l in lays){
