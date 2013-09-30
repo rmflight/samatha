@@ -140,3 +140,9 @@ run.server <- function(site){
   
   system("python", wait=F, input=pyStr)
 }
+
+#' catches the case when zero characters are returned
+catch_char_zero <- function(x){
+  if(!length(x))x <- ""
+  x
+}
