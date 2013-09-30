@@ -218,7 +218,7 @@ check.layouts <- function(lays, states){
 #' @param tag.layout The name of the layout file used to render subject tags
 #' @param fig.path name of the directory in the site where figures (particularly R charts etc.) are to be kept
 #' @return logical TRUE if site has been updated, FALSE otherwise
-update.site <- function(site, site.state, post.layout, tag.layout, fig.path){
+update.site <- function(site, site.state, post.layout, tag.layout, fig.path, initial){
         
     
     sp <- catch_char_zero(str_replace(as.character(sapply(names(site.state$source_pages), 
@@ -244,39 +244,66 @@ update.site <- function(site, site.state, post.layout, tag.layout, fig.path){
                                                    collapse = ", ")), "\n")
         return(FALSE)
     }
-    if(check.layouts(site.state$layouts, c(site.state$dest_pages, site.state$dest_posts))){
+    
+    
+    if (initial){
+      pages <- list.files(file.path(site, "template/pages"), recursive = TRUE)
+      pages.tobuild <- names(site.state$source_pages)
+      if(length(pages.tobuild)){
+        p2b <- str_match(pages.tobuild, "(template/pages/)(.+)")[,3]
+        for(p in p2b){
+          write.html(render.page(site, p)) 
+        }
+        cat(paste0("Re/built pages:\n",paste(p2b, collapse = ", ")), "\n")
+      }
+      posts.tobuild <- names(site.state$source_posts)
+      if(length(posts.tobuild)){
+        for(post in posts.tobuild) {
+          write.html(render.post(site, basename(post), 
+                                 layout = post.layout, 
+                                 fig.path = figure.path))
+        }
+        cat(paste0("Re/built posts:\n",paste(posts.tobuild, collapse = ", ")), "\n")
+      }
+      return(TRUE)
+      
+    } else {
+      if(check.layouts(site.state$layouts, c(site.state$dest_pages, site.state$dest_posts))){
         for(post in names(site.state$source_posts)) {
-            write.html(render.post(site, basename(post), 
-                                   layout = post.layout, 
-                                   fig.path = fig.path))
+          write.html(render.post(site, basename(post), 
+                                 layout = post.layout, 
+                                 fig.path = fig.path))
         }
         pages <- list.files(file.path(site, "template/pages"), recursive = TRUE)
         for(page in pages[str_detect(pages, "R$")]){
-            write.html(render.page(site, page)) 
+          write.html(render.page(site, page)) 
         }
         cat("Full site rebuild after layout changes.\n")
         return(TRUE)
-    }
-    pages.tobuild <- names(site.state$source_pages[check.pagesPosts(site.state$source_pages, sp, site.state$dest_pages, dp)])
-    if(length(pages.tobuild)){
+      }
+      pages.tobuild <- names(site.state$source_pages[check.pagesPosts(site.state$source_pages, sp, site.state$dest_pages, dp)])
+      if(length(pages.tobuild)){
         p2b <- str_match(pages.tobuild, "(template/pages/)(.+)")[,3]
         for(p in p2b){
-            write.html(render.page(site, p)) 
+          write.html(render.page(site, p)) 
         }
         cat(paste0("Re/built pages:\n",paste(p2b, collapse = ", ")), "\n")
         return(TRUE)
-    }
-    posts.tobuild <- names(site.state$source_posts)[check.pagesPosts(site.state$source_posts, sb, site.state$dest_posts, db)]
-    if(length(posts.tobuild)){
+      }
+      posts.tobuild <- names(site.state$source_posts)[check.pagesPosts(site.state$source_posts, sb, site.state$dest_posts, db)]
+      if(length(posts.tobuild)){
         for(post in posts.tobuild) {
-            write.html(render.post(site, basename(post), 
-                                   layout = post.layout, 
-                                   fig.path = figure.path))
+          write.html(render.post(site, basename(post), 
+                                 layout = post.layout, 
+                                 fig.path = figure.path))
         }
         cat(paste0("Re/built posts:\n",paste(posts.tobuild, collapse = ", ")), "\n")
         return(TRUE)
+      }
+      return(FALSE)
     }
-    FALSE
+    
+    
 }
 
 #' Refresh all posts and pages
@@ -322,22 +349,23 @@ refresh.site <- function(site, site.state, post.layout, tag.layout, fig.path){
     pages <- list.files(file.path(site, "template/pages"), recursive = TRUE)
     pages.tobuild <- names(site.state$source_pages)
     if(length(pages.tobuild)){
-        p2b <- str_match(pages.tobuild, "(template/pages/)(.+)")[,3]
-        for(p in p2b){
-            write.html(render.page(site, p)) 
-        }
-        cat(paste0("Re/built pages:\n",paste(p2b, collapse = ", ")), "\n")
-     }
+      p2b <- str_match(pages.tobuild, "(template/pages/)(.+)")[,3]
+      for(p in p2b){
+        write.html(render.page(site, p)) 
+      }
+      cat(paste0("Re/built pages:\n",paste(p2b, collapse = ", ")), "\n")
+    }
     posts.tobuild <- names(site.state$source_posts)
     if(length(posts.tobuild)){
-        for(post in posts.tobuild) {
-            write.html(render.post(site, basename(post), 
-                                   layout = post.layout, 
-                                   fig.path = figure.path))
-        }
-        cat(paste0("Re/built posts:\n",paste(posts.tobuild, collapse = ", ")), "\n")
+      for(post in posts.tobuild) {
+        write.html(render.post(site, basename(post), 
+                               layout = post.layout, 
+                               fig.path = figure.path))
+      }
+      cat(paste0("Re/built posts:\n",paste(posts.tobuild, collapse = ", ")), "\n")
     }
     TRUE
+    
 }
 
 #' Samatha: Runs an infinite loop, updating the site as necessary
