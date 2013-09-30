@@ -183,6 +183,12 @@ get.site.state <- function(site){
 }
 
 
+orphan.items <- function(dest.items, source.items){
+  if (length(dest.items)){
+    !(dest.items %in% source.items)
+  } else FALSE
+}
+
 #' Checks if source files were modified after the corresponding dest files
 #' if :
 #'  - layouts newer than any html files : rebuild everything - DONE
@@ -252,8 +258,8 @@ update.site <- function(site, site.state, post.layout, tag.layout, fig.path){
     
     db <- catch_char_zero(as.character(sapply(names(site.state$dest_posts), 
                               function(x) basename(x)))) # dest blog posts
-    orphan.pages <- names(site.state$dest_pages[orphan.pages.p()])
-    orphan.posts <- names(site.state$dest_posts[orphan.posts.p()])
+    orphan.pages <- names(site.state$dest_pages[orphan.items(dp, sp)])
+    orphan.posts <- names(site.state$dest_posts[orphan.items(db, sb)])
     
     if(length(orphan.pages) || length(orphan.posts)){
         for(f in c(orphan.pages, orphan.posts)){
