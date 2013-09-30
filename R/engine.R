@@ -257,7 +257,7 @@ update.site <- function(site, site.state, post.layout, tag.layout, fig.path){
         cat("Full site rebuild after layout changes.\n")
         return(TRUE)
     }
-    pages.tobuild <- names(site.state$source_pages[check.pagesPosts(site.state$source_pages, sp, site.state$dest_pages, dps)])
+    pages.tobuild <- names(site.state$source_pages[check.pagesPosts(site.state$source_pages, sp, site.state$dest_pages, dp)])
     if(length(pages.tobuild)){
         p2b <- str_match(pages.tobuild, "(template/pages/)(.+)")[,3]
         for(p in p2b){
@@ -266,7 +266,7 @@ update.site <- function(site, site.state, post.layout, tag.layout, fig.path){
         cat(paste0("Re/built pages:\n",paste(p2b, collapse = ", ")), "\n")
         return(TRUE)
     }
-    posts.tobuild <- names(site.state$source_posts)[check.posts()]
+    posts.tobuild <- names(site.state$source_posts)[check.pagesPosts(site.state$source_posts, sb, site.state$dest_posts, db)]
     if(length(posts.tobuild)){
         for(post in posts.tobuild) {
             write.html(render.post(site, basename(post), 
