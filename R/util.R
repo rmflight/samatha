@@ -152,3 +152,24 @@ catch_char_zero <- function(x){
   if(!length(x))x <- ""
   x
 }
+
+#' watch the site for changes
+#' 
+#' @importFrom multicore parallel
+#' @export
+watch.site <- function(site, rss=FALSE, initial=FALSE){
+  if (initial){
+    samatha(site, rss=rss, initial=initial)
+  } else {
+    watchJob <- parallel(samatha(site, rss=rss, initial=initial))
+    assign("watchJob", watchJob, envir=samatha.data)
+  }  
+}
+
+#' stop watching the site for changes
+#' 
+#' @export
+stop.site <- function(){
+  watchJob <- get("watchJob", envir=samatha.data)
+  kill(watchJob)
+}
