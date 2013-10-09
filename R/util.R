@@ -165,8 +165,13 @@ watch.site <- function(site, rss=FALSE, initial=FALSE){
   if (initial){
     samatha(site, rss=rss, initial=initial)
   } else {
-    watchJob <- parallel(samatha(site, rss=rss, initial=initial))
-    assign("watchJob", watchJob, envir=samatha.data)
+    sysdata <- Sys.info()
+    if (sysdata["sysname"] == "Linux"){
+      watchJob <- parallel:::mcparallel(samatha(site, rss=rss, initial=initial))
+      assign("watchJob", watchJob, envir=samatha.data)
+    } else {
+      samatha(site, rss=rss, initial=initial)
+    }
   }  
 }
 
@@ -175,5 +180,5 @@ watch.site <- function(site, rss=FALSE, initial=FALSE){
 #' @export
 stop.site <- function(){
   watchJob <- get("watchJob", envir=samatha.data)
-  kill(watchJob)
+  parallel:::mckill(watchJob)
 }
